@@ -39,7 +39,7 @@ export default function Contact() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a
-                href={`https://wa.me/?text=${encodeURIComponent('Hi! I am interested in a custom crochet order from Petals of Happiness 🌸')}`}
+                href={`https://wa.me/918000217707?text=${encodeURIComponent('Hi! I am interested in a custom crochet order from Petals of Happiness 🌸')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-500 text-white font-medium rounded-full hover:bg-green-600 transition-all"

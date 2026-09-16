@@ -34,7 +34,7 @@ export default function About() {
           </div>
           <div className="card overflow-hidden aspect-[4/5] max-w-md mx-auto lg:mx-0">
             <img
-              src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600"
+              src="https://imgs.search.brave.com/rD6g-F1c2gxGRgvzgqoM6Sco11Cbs9CsAJnALI1oaR8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMucGV4ZWxzLmNv/bS9waG90b3MvNzU4/NTU3MC9wZXhlbHMt/cGhvdG8tNzU4NTU3/MC5qcGVnP2NzPXRp/bnlzcmdiJmRwcj0x/Jnc9NTAw"
               alt="Handcrafted crochet art"
               className="w-full h-full object-cover"
             />
