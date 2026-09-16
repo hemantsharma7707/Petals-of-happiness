@@ -1,0 +1,201 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-cream-100 text-dark-400 font-sans antialiased;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+    line-height: 1.2;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  input, textarea, select {
+    outline: none;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-500 text-white font-medium rounded-full
+    transition-all duration-300 hover:bg-brand-700 hover:shadow-brand active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-brand-500 text-brand-500 font-medium rounded-full
+    transition-all duration-300 hover:bg-brand-500 hover:text-white active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-dark-200 font-medium rounded-full
+    transition-all duration-200 hover:bg-cream-200 active:scale-95;
+  }
+
+  .btn-sm {
+    @apply px-4 py-2 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-2xl shadow-soft overflow-hidden transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply hover:shadow-hover hover:-translate-y-1;
+  }
+
+  /* Form inputs */
+  .input {
+    @apply w-full px-4 py-3 bg-white border border-cream-300 rounded-xl text-dark-400 placeholder-dark-100
+    focus:border-brand-400 focus:ring-2 focus:ring-brand-200 transition-all duration-200;
+  }
+
+  .input-error {
+    @apply border-red-400 focus:border-red-400 focus:ring-red-100;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-dark-200 mb-1.5;
+  }
+
+  /* Section */
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20;
+  }
+
+  .container-max {
+    @apply max-w-7xl mx-auto;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-brand {
+    @apply bg-brand-100 text-brand-700;
+  }
+
+  .badge-sage {
+    @apply bg-sage-100 text-sage-600;
+  }
+
+  .badge-cream {
+    @apply bg-cream-200 text-dark-200;
+  }
+
+  /* Divider */
+  .divider {
+    @apply border-t border-cream-300 my-8;
+  }
+
+  /* Section header */
+  .section-tag {
+    @apply text-brand-500 font-accent italic text-lg tracking-wide;
+  }
+
+  .section-title {
+    @apply font-serif text-3xl sm:text-4xl lg:text-5xl text-dark-400;
+  }
+
+  /* Skeleton */
+  .skeleton {
+    @apply bg-cream-300 animate-pulse rounded-lg;
+  }
+
+  /* Admin table */
+  .admin-table {
+    @apply w-full text-sm text-left;
+  }
+
+  .admin-table th {
+    @apply px-4 py-3 text-dark-200 font-semibold bg-cream-200 first:rounded-tl-xl last:rounded-tr-xl;
+  }
+
+  .admin-table td {
+    @apply px-4 py-3 border-b border-cream-200;
+  }
+
+  .admin-table tr:last-child td {
+    @apply border-0;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-cream-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-brand-300 rounded-full;
+  }
+
+  /* Status badges */
+  .status-pending { @apply bg-yellow-100 text-yellow-700; }
+  .status-confirmed { @apply bg-blue-100 text-blue-700; }
+  .status-processing { @apply bg-purple-100 text-purple-700; }
+  .status-ready { @apply bg-indigo-100 text-indigo-700; }
+  .status-shipped { @apply bg-orange-100 text-orange-700; }
+  .status-delivered { @apply bg-green-100 text-green-700; }
+  .status-cancelled { @apply bg-red-100 text-red-700; }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #C9856F 0%, #9B5E52 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-pattern {
+    background-image: radial-gradient(circle at 20% 50%, rgba(201, 133, 111, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(139, 168, 136, 0.05) 0%, transparent 50%);
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
