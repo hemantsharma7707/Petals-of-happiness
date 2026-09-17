@@ -65,14 +65,14 @@ export default function Hero() {
             <div className="space-y-4">
               <div className="card overflow-hidden aspect-[3/4] bg-cream-200">
                 <img
-                  src="https://images.unsplash.com/photo-1518709594023-6eab9bab7b23?w=600"
+                  src="https://imgs.search.brave.com/jYXqlaepwQS_MKW4wWdeyEd3ZU_PRPOjv8k1XnvtIpA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90aHVt/YnMuZHJlYW1zdGlt/ZS5jb20vYi9jcm9j/aGV0ZWQtcGluay1y/b3NlLWNvbG9yZWQt/Z3Jhbm55LXNxdWFy/ZXMtd2hpdGUtYm9y/ZGVyLWNyb2NoZXQt/aG9vay1pbnNlcnRl/ZC1jb3JuZXItcHJl/dHR5LXBpbmstY3Jv/Y2hldGVkLWdyYW5u/eS00MTQzNjQyNzUu/anBn"
                   alt="Handmade crochet rose bouquet"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="card overflow-hidden aspect-square bg-cream-200">
                 <img
-                  src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600"
+                  src="https://imgs.search.brave.com/lvufsfE88j94bkL_LwoKR4lTfLM2AODRt8l87tOkNOk/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzL2I5L2Y2/LzlhL2I5ZjY5YTRi/ZDZiMmNiZDQ4YjA4/NmM3NDQ0MDk5Yjk1/LmpwZw"
                   alt="Crochet keychain"
                   className="w-full h-full object-cover"
                 />
@@ -81,14 +81,14 @@ export default function Hero() {
             <div className="space-y-4 mt-8">
               <div className="card overflow-hidden aspect-square bg-cream-200">
                 <img
-                  src="https://images.unsplash.com/photo-1563396983906-b3795482a59a?w=600"
+                  src="https://i.pinimg.com/736x/29/36/61/293661a749536fea45692517ce8055ac.jpg"
                   alt="Crochet teddy bear"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="card overflow-hidden aspect-[3/4] bg-cream-200">
                 <img
-                  src="https://images.unsplash.com/photo-1614521084980-d60b0b2a6a53?w=600"
+                  src="https://i.pinimg.com/736x/be/ae/f3/beaef31ad70f373a6c655ea54d85a326.jpg"
                   alt="Crochet tote bag"
                   className="w-full h-full object-cover"
                 />
