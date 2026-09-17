@@ -9,7 +9,7 @@ export default function BrandStory() {
           <div className="relative">
             <div className="card overflow-hidden aspect-[4/5] max-w-md mx-auto">
               <img
-                src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600"
+                src="https://imgs.search.brave.com/R-RXvoT8Umb830onuRJvgd-8I_OZvlBLCcOO3Kau8Hw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jcGlt/Zy50aXN0YXRpYy5j/b20vMTIxNTA1NjIv/Yi81L0hhbmRtYWRl/LUNyb2NoZXQtQW1p/Z3VydW1pLUJ1bm55/LUtleWNoYWluLmpw/Zw"
                 alt="Handcrafting crochet with love"
                 className="w-full h-full object-cover"
               />
