@@ -32,7 +32,7 @@ export default function Footer() {
               Handcrafted with love, every stitch tells a story. Our crochet creations bring warmth and joy into your life.
             </p>
             <div className="flex gap-3">
-              <a href="#" aria-label="Instagram" className="w-9 h-9 rounded-full bg-dark-300 flex items-center justify-center text-cream-200 hover:bg-brand-500 hover:text-white transition-all">
+              <a href="https://www.instagram.com/petals_0f_happiness?stkn=ZDNlZDc0MzIxNw==git " aria-label="Instagram" className="w-9 h-9 rounded-full bg-dark-300 flex items-center justify-center text-cream-200 hover:bg-brand-500 hover:text-white transition-all">
                 <Instagram size={16} />
               </a>
               <a href="#" aria-label="Facebook" className="w-9 h-9 rounded-full bg-dark-300 flex items-center justify-center text-cream-200 hover:bg-brand-500 hover:text-white transition-all">
