@@ -11,6 +11,7 @@ import {
   LogOut,
   Home,
   ChevronLeft,
+  Star,
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -18,6 +19,7 @@ const ADMIN_LINKS = [
   { to: '/admin/products', label: 'Products', icon: Package },
   { to: '/admin/orders', label: 'Orders', icon: ShoppingCart },
   { to: '/admin/customers', label: 'Customers', icon: Users },
+  { to: '/admin/reviews', label: 'Reviews', icon: Star },
 ];
 
 export default function AdminLayout() {

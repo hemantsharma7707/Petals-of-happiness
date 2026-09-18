@@ -47,12 +47,15 @@ const {
   getAllUsers,
 } = require('./controllers/order.controller');
 const { getAllProductsAdmin } = require('./controllers/product.controller');
+const { getAllReviewsAdmin, updateReviewStatus } = require('./controllers/review.controller');
 
 app.get('/api/admin/dashboard', protect, adminOnly, getDashboardStats);
 app.get('/api/admin/orders', protect, adminOnly, getAllOrders);
 app.put('/api/admin/orders/:id/status', protect, adminOnly, updateOrderStatus);
 app.get('/api/admin/users', protect, adminOnly, getAllUsers);
 app.get('/api/admin/products', protect, adminOnly, getAllProductsAdmin);
+app.get('/api/admin/reviews', protect, adminOnly, getAllReviewsAdmin);
+app.put('/api/admin/reviews/:id/status', protect, adminOnly, updateReviewStatus);
 
 // Health check
 app.get('/api/health', (req, res) => {

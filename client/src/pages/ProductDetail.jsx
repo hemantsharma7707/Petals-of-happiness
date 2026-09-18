@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Minus, Plus, Heart, Truck, Shield, ArrowLeft, Check } from 'lucide-react';
-import { productService } from '../services/services';
+import { ShoppingBag, Minus, Plus, Heart, Truck, Shield, ArrowLeft, Check, Star } from 'lucide-react';
+import { productService, reviewService } from '../services/services';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import ProductCard from '../components/products/ProductCard';
 import { formatPrice, getImageUrl } from '../utils/helpers';
 import toast from 'react-hot-toast';
@@ -11,9 +12,13 @@ export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addItem, openCart } = useCart();
+  const { user } = useAuth();
 
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -34,6 +39,9 @@ export default function ProductDetail() {
       .then((res) => {
         setProduct(res.data.product);
         setRelated(res.data.related || []);
+        // Fetch reviews
+        reviewService.getByProduct(id).then(r => setReviews(r.data.reviews || []));
+        
         // Default color selection
         const colorVariant = res.data.product.variants?.find((v) => v.name.toLowerCase() === 'color');
         if (colorVariant?.options?.length > 0) {
@@ -58,6 +66,21 @@ export default function ProductDetail() {
     if (!product) return;
     addItem(product, quantity, selectedColor, selectedVariants, customization);
     navigate('/checkout');
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!reviewForm.comment.trim()) return toast.error('Please add a comment');
+    setSubmittingReview(true);
+    try {
+      const res = await reviewService.create(product._id, reviewForm);
+      toast.success(res.data.message);
+      setReviewForm({ rating: 5, comment: '' });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   if (loading) {
@@ -138,7 +161,19 @@ export default function ProductDetail() {
               {isOnSale && <span className="badge bg-brand-500 text-white">Sale</span>}
             </div>
 
-            <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-dark-400 mb-3">{product.name}</h1>
+            <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-dark-400 mb-2">{product.name}</h1>
+
+            {/* Rating */}
+            {product.numOfReviews > 0 && (
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex text-yellow-400">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} size={16} fill={star <= product.averageRating ? 'currentColor' : 'none'} className={star <= product.averageRating ? 'text-yellow-400' : 'text-cream-300'} />
+                  ))}
+                </div>
+                <span className="text-sm text-dark-100">({product.numOfReviews} {product.numOfReviews === 1 ? 'review' : 'reviews'})</span>
+              </div>
+            )}
 
             {/* Price */}
             <div className="flex items-center gap-3 mb-4">
@@ -284,6 +319,84 @@ export default function ProductDetail() {
               <div className="flex items-center gap-2 text-sm text-dark-200">
                 <Heart size={16} className="text-sage-400" />
                 <span>Gift-ready packaging</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-16 pt-12 border-t border-cream-200">
+          <h2 className="section-title mb-8">Customer Reviews</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* Reviews List */}
+            <div className="lg:col-span-2 space-y-6">
+              {reviews.length === 0 ? (
+                <div className="text-center py-10 bg-cream-50 rounded-2xl border border-cream-200">
+                  <Star size={40} className="mx-auto text-cream-300 mb-3" />
+                  <p className="text-dark-200">No reviews yet. Be the first to share your experience!</p>
+                </div>
+              ) : (
+                reviews.map((review) => (
+                  <div key={review._id} className="card p-5 border border-cream-200">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <p className="font-medium text-dark-400">{review.user?.name || 'Customer'}</p>
+                        <p className="text-xs text-dark-100">{new Date(review.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <div className="flex text-yellow-400">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star key={star} size={14} fill={star <= review.rating ? 'currentColor' : 'none'} className={star <= review.rating ? 'text-yellow-400' : 'text-cream-300'} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-dark-200 text-sm leading-relaxed">{review.comment}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Write a Review */}
+            <div>
+              <div className="card p-6 bg-brand-50 border border-brand-100 sticky top-24">
+                <h3 className="font-serif text-xl text-dark-400 mb-4">Write a Review</h3>
+                {!user ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-dark-200 mb-4">You must be logged in to leave a review.</p>
+                    <Link to="/login" className="btn-primary w-full justify-center">Log In</Link>
+                  </div>
+                ) : (
+                  <form onSubmit={handleReviewSubmit} className="space-y-4">
+                    <div>
+                      <label className="label">Rating</label>
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            type="button"
+                            key={star}
+                            onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                            className="p-1 transition-transform hover:scale-110"
+                          >
+                            <Star size={24} fill={star <= reviewForm.rating ? '#FBBF24' : 'none'} className={star <= reviewForm.rating ? 'text-yellow-400' : 'text-cream-300'} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="label">Your Review</label>
+                      <textarea
+                        value={reviewForm.comment}
+                        onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                        rows={4}
+                        className="input resize-none"
+                        placeholder="What did you like about this product?"
+                      />
+                    </div>
+                    <button type="submit" disabled={submittingReview} className="btn-primary w-full justify-center">
+                      {submittingReview ? 'Submitting...' : 'Submit Review'}
+                    </button>
+                    <p className="text-xs text-dark-100 text-center mt-2">Your review will be public after approval.</p>
+                  </form>
+                )}
               </div>
             </div>
           </div>

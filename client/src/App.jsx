@@ -25,6 +25,7 @@ import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminCustomers from './pages/admin/AdminCustomers';
+import AdminReviews from './pages/admin/AdminReviews';
 
 function App() {
   return (
@@ -78,6 +79,7 @@ function App() {
               <Route path="products/:id/edit" element={<AdminProductForm />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="customers" element={<AdminCustomers />} />
+              <Route path="reviews" element={<AdminReviews />} />
             </Route>
 
             {/* 404 */}

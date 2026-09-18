@@ -26,7 +26,14 @@ export const orderService = {
   updateStatus: (id, data) => api.put(`/admin/orders/${id}/status`, data),
 };
 
+export const reviewService = {
+  create: (productId, data) => api.post(`/products/${productId}/reviews`, data),
+  getByProduct: (productId) => api.get(`/products/${productId}/reviews`),
+};
+
 export const adminService = {
   getDashboard: () => api.get('/admin/dashboard'),
   getUsers: (params) => api.get('/admin/users', { params }),
+  getReviews: () => api.get('/admin/reviews'),
+  updateReviewStatus: (id, status) => api.put(`/admin/reviews/${id}/status`, { isApproved: status }),
 };

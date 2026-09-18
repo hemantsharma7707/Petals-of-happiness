@@ -10,6 +10,10 @@ const {
 } = require('../controllers/product.controller');
 const { protect, adminOnly } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
+const reviewRouter = require('./review.routes');
+
+// Re-route into other resource routers
+router.use('/:productId/reviews', reviewRouter);
 
 // Public routes
 router.get('/', getProducts);
