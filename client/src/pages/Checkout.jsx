@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/services';
 import { formatPrice, getImageUrl, validatePhone, validatePincode } from '../utils/helpers';
-import { MapPin, User, Phone, FileText, ChevronLeft, ShoppingBag } from 'lucide-react';
+import { MapPin, User, Phone, FileText, ChevronLeft, ShoppingBag, X, QrCode, Copy } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Checkout() {
@@ -19,8 +19,19 @@ export default function Checkout() {
     city: '',
     pincode: '',
   });
+  const [paymentMethod, setPaymentMethod] = useState('COD');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  // Dynamic Shipping Calculation
+  const calculateShipping = () => {
+    if (subtotal > 800) return 0;
+    if (form.city.trim().toLowerCase() === 'jaipur') return 50;
+    return 100;
+  };
+  const shippingFee = form.city.trim() ? calculateShipping() : 0;
+  const total = subtotal + shippingFee;
 
   const update = (key, val) => {
     setForm({ ...form, [key]: val });
@@ -40,10 +51,18 @@ export default function Checkout() {
     return Object.keys(errs).length === 0;
   };
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrderClick = () => {
     if (items.length === 0) return toast.error('Your cart is empty');
     if (!validate()) return toast.error('Please fix the errors in the form');
+    
+    if (paymentMethod === 'UPI') {
+      setShowPaymentModal(true);
+    } else {
+      submitOrder();
+    }
+  };
 
+  const submitOrder = async () => {
     setLoading(true);
     try {
       const orderItems = items.map((item) => ({
@@ -61,6 +80,7 @@ export default function Checkout() {
         address: form.address,
         city: form.city,
         pincode: form.pincode,
+        paymentMethod,
       });
 
       clearCart();
@@ -193,29 +213,107 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-dark-100">Shipping</span>
-                  <span className="text-sage-500">Calculated via WhatsApp</span>
+                  {form.city.trim() ? (
+                    <span className="text-dark-400">{shippingFee === 0 ? 'Free' : formatPrice(shippingFee)}</span>
+                  ) : (
+                    <span className="text-dark-100">Enter city to calculate</span>
+                  )}
                 </div>
                 <div className="flex justify-between pt-3 border-t border-cream-200">
                   <span className="font-semibold text-dark-400">Total</span>
-                  <span className="font-serif text-xl font-bold text-brand-500">{formatPrice(subtotal)}</span>
+                  <span className="font-serif text-xl font-bold text-brand-500">{formatPrice(total)}</span>
+                </div>
+              </div>
+
+              {/* Payment Selection */}
+              <div className="mt-6 mb-4">
+                <h3 className="text-sm font-semibold text-dark-400 mb-3">Payment Method</h3>
+                <div className="space-y-3">
+                  <label className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${paymentMethod === 'COD' ? 'border-brand-500 bg-brand-50' : 'border-cream-200 hover:border-cream-300'}`}>
+                    <input type="radio" name="payment" value="COD" checked={paymentMethod === 'COD'} onChange={(e) => setPaymentMethod(e.target.value)} className="hidden" />
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'COD' ? 'border-brand-500' : 'border-dark-100'}`}>
+                      {paymentMethod === 'COD' && <div className="w-2 h-2 rounded-full bg-brand-500" />}
+                    </div>
+                    <span className="font-medium text-dark-400 text-sm">Cash on Delivery</span>
+                  </label>
+                  <label className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${paymentMethod === 'UPI' ? 'border-brand-500 bg-brand-50' : 'border-cream-200 hover:border-cream-300'}`}>
+                    <input type="radio" name="payment" value="UPI" checked={paymentMethod === 'UPI'} onChange={(e) => setPaymentMethod(e.target.value)} className="hidden" />
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'UPI' ? 'border-brand-500' : 'border-dark-100'}`}>
+                      {paymentMethod === 'UPI' && <div className="w-2 h-2 rounded-full bg-brand-500" />}
+                    </div>
+                    <span className="font-medium text-dark-400 text-sm">UPI Payment</span>
+                  </label>
                 </div>
               </div>
 
               <button
-                onClick={handlePlaceOrder}
+                onClick={handlePlaceOrderClick}
                 disabled={loading}
-                className="btn-primary w-full justify-center mt-5"
+                className="btn-primary w-full justify-center mt-2"
               >
-                {loading ? 'Placing Order...' : '🌸 Place Order via WhatsApp'}
+                {loading ? 'Processing...' : '🌸 Place Order'}
               </button>
 
               <p className="text-xs text-dark-100 text-center mt-3">
-                Your order will be saved and a WhatsApp message will be prepared for confirmation.
+                {paymentMethod === 'UPI' ? 'You will be shown a QR code to scan and pay on the next screen.' : 'Pay by cash when the order is delivered to you.'}
               </p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* UPI Payment Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-dark-400/40 backdrop-blur-sm overflow-y-auto py-8">
+          <div className="card p-6 max-w-md w-full animate-slide-up my-auto bg-white relative">
+            <button 
+              onClick={() => setShowPaymentModal(false)} 
+              className="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-cream-200"
+            >
+              <X size={18} />
+            </button>
+            
+            <div className="text-center mb-6">
+              <h3 className="font-serif text-2xl text-dark-400 mb-2">Complete Payment</h3>
+              <p className="text-sm text-dark-200">
+                Please pay <span className="font-bold text-dark-400">{formatPrice(total)}</span> via UPI.
+                <br />
+                <span className="font-medium text-brand-600">Important:</span> Send a screenshot of the payment to our WhatsApp to confirm your order!
+              </p>
+            </div>
+
+            <div className="flex justify-center mb-6">
+              <div className="w-32 h-32 bg-brand-50 rounded-xl flex items-center justify-center border-2 border-brand-200">
+                <QrCode size={64} className="text-brand-500" />
+              </div>
+            </div>
+
+            <div className="bg-cream-100 px-4 py-3 rounded-lg border border-cream-200 mb-6 flex justify-between items-center">
+              <div>
+                <p className="text-xs text-dark-100 mb-0.5">UPI ID</p>
+                <p className="font-medium text-brand-600">hemantjvd@ptyes</p>
+              </div>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText('hemantjvd@ptyes');
+                  toast.success('UPI ID copied!');
+                }}
+                className="p-2 hover:bg-cream-200 rounded-lg transition-colors"
+              >
+                <Copy size={16} className="text-dark-200" />
+              </button>
+            </div>
+
+            <button
+              onClick={submitOrder}
+              disabled={loading}
+              className="btn-primary w-full justify-center text-base py-3"
+            >
+              {loading ? 'Placing Order...' : 'I Have Paid & Sent Screenshot'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -58,6 +58,21 @@ const orderSchema = new mongoose.Schema(
       enum: ['Pending', 'Confirmed', 'Processing', 'Ready', 'Shipped', 'Delivered', 'Cancelled'],
       default: 'Pending',
     },
+    paymentMethod: {
+      type: String,
+      enum: ['COD', 'UPI'],
+      required: [true, 'Payment method is required'],
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['Pending', 'Paid', 'Failed'],
+      default: 'Pending',
+    },
+    shippingFee: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

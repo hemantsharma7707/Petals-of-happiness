@@ -42,8 +42,12 @@ ${itemsText}
 
 ${divider}
 
+💳 PAYMENT & SUMMARY
+Subtotal: ₹${order.subtotal?.toLocaleString('en-IN') || 0}
+Shipping: ₹${order.shippingFee?.toLocaleString('en-IN') || 0}
 💰 TOTAL: ₹${order.total.toLocaleString('en-IN')}
 
+Method: ${order.paymentMethod} (${order.paymentStatus})
 📋 Order Status: ${order.orderStatus}
 
 Thank you for ordering from Petals of Happiness! 🌸`;

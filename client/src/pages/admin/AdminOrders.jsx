@@ -31,13 +31,13 @@ export default function AdminOrders() {
 
   const handleSearch = (e) => { e.preventDefault(); fetchOrders(); };
 
-  const handleStatusChange = async (orderId, newStatus) => {
+  const handleUpdate = async (orderId, updates) => {
     setUpdatingStatus(true);
     try {
-      const res = await orderService.updateStatus(orderId, newStatus);
+      const res = await orderService.updateStatus(orderId, updates);
       setOrders(orders.map((o) => (o._id === orderId ? res.data.order : o)));
       if (selectedOrder?._id === orderId) setSelectedOrder(res.data.order);
-      toast.success('Status updated');
+      toast.success('Order updated');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Update failed');
     } finally {
@@ -101,7 +101,7 @@ export default function AdminOrders() {
                   <td>
                     <select
                       value={o.orderStatus}
-                      onChange={(e) => handleStatusChange(o._id, e.target.value)}
+                      onChange={(e) => handleUpdate(o._id, { status: e.target.value })}
                       disabled={updatingStatus}
                       className={`badge ${getStatusClass(o.orderStatus)} text-[11px] border-0 cursor-pointer pr-5 font-medium`}
                     >
@@ -150,8 +150,16 @@ export default function AdminOrders() {
                 <p className="text-dark-400 font-medium">{formatDate(selectedOrder.createdAt)}</p>
               </div>
               <div>
-                <p className="text-dark-100 text-xs">Status</p>
-                <span className={`badge ${getStatusClass(selectedOrder.orderStatus)}`}>{selectedOrder.orderStatus}</span>
+                <p className="text-dark-100 text-xs">Payment Method</p>
+                <span className={`badge ${selectedOrder.paymentMethod === 'UPI' ? 'status-processing' : 'status-pending'} mt-1`}>{selectedOrder.paymentMethod}</span>
+              </div>
+              <div>
+                <p className="text-dark-100 text-xs">Payment Status</p>
+                <span className={`badge ${selectedOrder.paymentStatus === 'Paid' ? 'status-delivered' : 'status-pending'} mt-1`}>{selectedOrder.paymentStatus}</span>
+              </div>
+              <div>
+                <p className="text-dark-100 text-xs">Order Status</p>
+                <span className={`badge ${getStatusClass(selectedOrder.orderStatus)} mt-1`}>{selectedOrder.orderStatus}</span>
               </div>
             </div>
 
@@ -174,24 +182,47 @@ export default function AdminOrders() {
               ))}
             </div>
 
-            <div className="border-t border-cream-200 pt-3 flex justify-between">
-              <span className="font-semibold text-dark-400">Total</span>
-              <span className="font-serif text-xl font-bold text-brand-500">{formatPrice(selectedOrder.total)}</span>
+            <div className="border-t border-cream-200 pt-3 space-y-2 mb-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-dark-100">Subtotal</span>
+                <span className="text-dark-400">{formatPrice(selectedOrder.subtotal || 0)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-dark-100">Shipping Fee</span>
+                <span className="text-dark-400">{selectedOrder.shippingFee === 0 ? 'Free' : formatPrice(selectedOrder.shippingFee || 0)}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-cream-200">
+                <span className="font-semibold text-dark-400">Total</span>
+                <span className="font-serif text-xl font-bold text-brand-500">{formatPrice(selectedOrder.total)}</span>
+              </div>
             </div>
 
             {/* Status Update & Actions */}
             <div className="mt-4 pt-4 border-t border-cream-200">
               <div className="flex flex-col sm:flex-row sm:items-end gap-4 justify-between">
-                <div className="flex-1">
-                  <label className="label">Update Status</label>
-                  <select
-                    value={selectedOrder.orderStatus}
-                    onChange={(e) => handleStatusChange(selectedOrder._id, e.target.value)}
-                    disabled={updatingStatus}
-                    className="input text-sm"
-                  >
-                    {STATUSES.filter((s) => s !== 'All').map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <label className="label">Order Status</label>
+                    <select
+                      value={selectedOrder.orderStatus}
+                      onChange={(e) => handleUpdate(selectedOrder._id, { status: e.target.value })}
+                      disabled={updatingStatus}
+                      className="input text-sm"
+                    >
+                      {STATUSES.filter((s) => s !== 'All').map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Payment Status</label>
+                    <select
+                      value={selectedOrder.paymentStatus}
+                      onChange={(e) => handleUpdate(selectedOrder._id, { paymentStatus: e.target.value })}
+                      disabled={updatingStatus}
+                      className="input text-sm"
+                    >
+                      {['Pending', 'Paid', 'Failed'].map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
                 </div>
                 {selectedOrder.whatsappUrl && (
                   <a

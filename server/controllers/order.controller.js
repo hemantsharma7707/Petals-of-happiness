@@ -6,14 +6,17 @@ const { getWhatsAppURL } = require('../utils/whatsapp');
 // @access Private (customer)
 const createOrder = async (req, res, next) => {
   try {
-    const { items, customerName, phone, address, city, pincode } = req.body;
+    const { items, customerName, phone, address, city, pincode, paymentMethod } = req.body;
 
     // Validate required fields
     if (!items || items.length === 0) {
       return res.status(400).json({ success: false, message: 'Cart is empty' });
     }
-    if (!customerName || !phone || !address || !city || !pincode) {
-      return res.status(400).json({ success: false, message: 'Please fill all delivery details' });
+    if (!customerName || !phone || !address || !city || !pincode || !paymentMethod) {
+      return res.status(400).json({ success: false, message: 'Please fill all delivery details and select a payment method' });
+    }
+    if (!['COD', 'UPI'].includes(paymentMethod)) {
+      return res.status(400).json({ success: false, message: 'Invalid payment method' });
     }
     if (!/^[6-9]\d{9}$/.test(phone)) {
       return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit Indian phone number' });
@@ -67,7 +70,13 @@ const createOrder = async (req, res, next) => {
       await Product.findByIdAndUpdate(product._id, { $inc: { stock: -item.quantity } });
     }
 
-    const total = subtotal; // No shipping in v1
+    // Calculate Shipping Fee
+    let shippingFee = 0;
+    if (subtotal <= 800) {
+      shippingFee = city.trim().toLowerCase() === 'jaipur' ? 50 : 100;
+    }
+
+    const total = subtotal + shippingFee;
 
     const order = await Order.create({
       user: req.user._id,
@@ -78,7 +87,10 @@ const createOrder = async (req, res, next) => {
       city,
       pincode,
       subtotal,
+      shippingFee,
       total,
+      paymentMethod,
+      paymentStatus: 'Pending',
       orderStatus: 'Pending',
     });
 
@@ -179,16 +191,24 @@ const getAllOrders = async (req, res, next) => {
 // @access Admin
 const updateOrderStatus = async (req, res, next) => {
   try {
-    const { status } = req.body;
+    const { status, paymentStatus } = req.body;
     const validStatuses = ['Pending', 'Confirmed', 'Processing', 'Ready', 'Shipped', 'Delivered', 'Cancelled'];
+    const validPaymentStatuses = ['Pending', 'Paid', 'Failed'];
 
-    if (!validStatuses.includes(status)) {
+    if (status && !validStatuses.includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid order status' });
     }
+    if (paymentStatus && !validPaymentStatuses.includes(paymentStatus)) {
+      return res.status(400).json({ success: false, message: 'Invalid payment status' });
+    }
+
+    const updates = {};
+    if (status) updates.orderStatus = status;
+    if (paymentStatus) updates.paymentStatus = paymentStatus;
 
     const order = await Order.findByIdAndUpdate(
       req.params.id,
-      { orderStatus: status },
+      updates,
       { new: true }
     ).populate('user', 'name email phone');
 

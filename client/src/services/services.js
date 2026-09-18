@@ -23,7 +23,7 @@ export const orderService = {
   getById: (id) => api.get(`/orders/${id}`),
   // Admin
   getAll: (params) => api.get('/admin/orders', { params }),
-  updateStatus: (id, status) => api.put(`/admin/orders/${id}/status`, { status }),
+  updateStatus: (id, data) => api.put(`/admin/orders/${id}/status`, data),
 };
 
 export const adminService = {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
-import { Check, MessageCircle, ShoppingBag, ArrowRight, Copy, ClipboardList, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
+import { Check, MessageCircle, ShoppingBag, ArrowRight, Copy, ClipboardList, Package, Truck, CheckCircle, XCircle, QrCode } from 'lucide-react';
 import { orderService } from '../services/services';
 import { formatPrice, formatDate, getImageUrl } from '../utils/helpers';
 import toast from 'react-hot-toast';
@@ -56,7 +56,7 @@ export default function OrderSuccess() {
 
   const getStepStatus = (stepIndex, currentStatus) => {
     if (currentStatus === 'Cancelled') return 'cancelled';
-    
+
     // Find current active step index
     let currentStepIndex = 0;
     if (['Confirmed', 'Processing', 'Ready'].includes(currentStatus)) currentStepIndex = 1;
@@ -99,7 +99,7 @@ export default function OrderSuccess() {
         {/* Visual Order Tracking Timeline */}
         <div className="card p-6 mb-6">
           <h2 className="font-serif text-xl text-dark-400 mb-6">Order Status</h2>
-          
+
           {order.orderStatus === 'Cancelled' ? (
             <div className="flex flex-col items-center justify-center py-6 text-red-500 bg-red-50 rounded-xl border border-red-100">
               <XCircle size={48} className="mb-3" />
@@ -110,11 +110,11 @@ export default function OrderSuccess() {
             <div className="relative">
               {/* Progress Bar Background */}
               <div className="absolute left-[1.3rem] sm:left-1/2 sm:-translate-x-1/2 top-4 bottom-4 sm:bottom-auto sm:top-[1.3rem] w-0.5 sm:w-full sm:h-0.5 bg-cream-200 z-0"></div>
-              
+
               {/* Progress Bar Active */}
-              <div 
+              <div
                 className="absolute left-[1.3rem] sm:left-[10%] top-4 sm:top-[1.3rem] w-0.5 sm:h-0.5 bg-brand-500 z-0 transition-all duration-500 ease-in-out"
-                style={{ 
+                style={{
                   height: 'var(--progress-height, 0%)',
                   width: 'var(--progress-width, 0%)',
                   // CSS variables to be set based on active step in mobile/desktop
@@ -125,16 +125,16 @@ export default function OrderSuccess() {
                   if (['Confirmed', 'Processing', 'Ready'].includes(order.orderStatus)) currentStepIndex = 1;
                   if (order.orderStatus === 'Shipped') currentStepIndex = 2;
                   if (order.orderStatus === 'Delivered') currentStepIndex = 3;
-                  
+
                   // For mobile vertical
                   const percentage = currentStepIndex * (100 / 3);
                   if (window.innerWidth < 640) {
-                     el.style.height = `${percentage}%`;
-                     el.style.width = '2px';
+                    el.style.height = `${percentage}%`;
+                    el.style.width = '2px';
                   } else {
-                     el.style.width = `${percentage * 0.8 + 10}%`; // rough approximation for horizontal
-                     el.style.height = '2px';
-                     el.style.left = '10%';
+                    el.style.width = `${percentage * 0.8 + 10}%`; // rough approximation for horizontal
+                    el.style.height = '2px';
+                    el.style.left = '10%';
                   }
                 }}
               ></div>
@@ -143,14 +143,14 @@ export default function OrderSuccess() {
                 {trackingSteps.map((step, index) => {
                   const status = getStepStatus(index, order.orderStatus);
                   const Icon = step.icon;
-                  
+
                   return (
                     <div key={index} className="flex sm:flex-col items-center gap-4 sm:gap-3 flex-1">
-                      <div 
+                      <div
                         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-colors
-                          ${status === 'completed' ? 'bg-brand-500 border-brand-500 text-white' : 
-                            status === 'active' ? 'bg-white border-brand-500 text-brand-500 shadow-[0_0_15px_rgba(219,39,119,0.3)]' : 
-                            'bg-white border-cream-200 text-dark-100'}`}
+                          ${status === 'completed' ? 'bg-brand-500 border-brand-500 text-white' :
+                            status === 'active' ? 'bg-white border-brand-500 text-brand-500 shadow-[0_0_15px_rgba(219,39,119,0.3)]' :
+                              'bg-white border-cream-200 text-dark-100'}`}
                       >
                         {status === 'completed' ? <Check size={20} /> : <Icon size={20} />}
                       </div>
@@ -167,7 +167,6 @@ export default function OrderSuccess() {
             </div>
           )}
         </div>
-
 
         {/* Order Summary */}
         <div className="card p-6 mb-6">
