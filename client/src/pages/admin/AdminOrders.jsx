@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { orderService } from '../../services/services';
 import { formatPrice, formatDate, getStatusClass, getImageUrl } from '../../utils/helpers';
-import { Search, Eye, X, ChevronDown } from 'lucide-react';
+import { Search, Eye, X, ChevronDown, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STATUSES = ['All', 'Pending', 'Confirmed', 'Processing', 'Ready', 'Shipped', 'Delivered', 'Cancelled'];
@@ -179,17 +179,32 @@ export default function AdminOrders() {
               <span className="font-serif text-xl font-bold text-brand-500">{formatPrice(selectedOrder.total)}</span>
             </div>
 
-            {/* Status Update */}
+            {/* Status Update & Actions */}
             <div className="mt-4 pt-4 border-t border-cream-200">
-              <label className="label">Update Status</label>
-              <select
-                value={selectedOrder.orderStatus}
-                onChange={(e) => handleStatusChange(selectedOrder._id, e.target.value)}
-                disabled={updatingStatus}
-                className="input text-sm"
-              >
-                {STATUSES.filter((s) => s !== 'All').map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4 justify-between">
+                <div className="flex-1">
+                  <label className="label">Update Status</label>
+                  <select
+                    value={selectedOrder.orderStatus}
+                    onChange={(e) => handleStatusChange(selectedOrder._id, e.target.value)}
+                    disabled={updatingStatus}
+                    className="input text-sm"
+                  >
+                    {STATUSES.filter((s) => s !== 'All').map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                {selectedOrder.whatsappUrl && (
+                  <a
+                    href={selectedOrder.whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary py-2 px-4 flex items-center gap-2 flex-shrink-0 bg-green-500 hover:bg-green-600 text-white border-0"
+                  >
+                    <MessageCircle size={18} />
+                    Send to Customer
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>

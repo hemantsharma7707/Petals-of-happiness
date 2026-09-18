@@ -159,9 +159,15 @@ const getAllOrders = async (req, res, next) => {
       Order.countDocuments(query),
     ]);
 
+    const ordersWithUrl = orders.map((order) => {
+      const orderObj = order.toObject();
+      orderObj.whatsappUrl = getWhatsAppURL(order);
+      return orderObj;
+    });
+
     res.json({
       success: true,
-      orders,
+      orders: ordersWithUrl,
       pagination: { total, page: pageNum, pages: Math.ceil(total / limitNum), limit: limitNum },
     });
   } catch (error) {
@@ -190,7 +196,10 @@ const updateOrderStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    res.json({ success: true, message: 'Order status updated', order });
+    const orderObj = order.toObject();
+    orderObj.whatsappUrl = getWhatsAppURL(order);
+
+    res.json({ success: true, message: 'Order status updated', order: orderObj });
   } catch (error) {
     next(error);
   }

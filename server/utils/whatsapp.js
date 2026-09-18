@@ -55,7 +55,8 @@ Thank you for ordering from Petals of Happiness! 🌸`;
  * Returns the WhatsApp click-to-chat URL.
  */
 const getWhatsAppURL = (order) => {
-  const number = process.env.WHATSAPP_NUMBER || '';
+  // Admin will use this to send a message to the client's phone number
+  const number = order.phone ? `91${order.phone}` : '';
   const encodedMessage = generateWhatsAppMessage(order);
   return `https://wa.me/${number}?text=${encodedMessage}`;
 };
