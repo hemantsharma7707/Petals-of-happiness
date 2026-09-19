@@ -55,8 +55,22 @@ const orderSchema = new mongoose.Schema(
     },
     orderStatus: {
       type: String,
-      enum: ['Pending', 'Confirmed', 'Processing', 'Ready', 'Shipped', 'Delivered', 'Cancelled'],
-      default: 'Pending',
+      enum: [
+        'PENDING_PAYMENT',
+        'PAYMENT_PROCESSING',
+        'PAID',
+        'PAYMENT_FAILED',
+        'PAYMENT_CANCELLED',
+        'PAYMENT_VERIFICATION_FAILED',
+        'Pending',
+        'Confirmed',
+        'Processing',
+        'Ready',
+        'Shipped',
+        'Delivered',
+        'Cancelled'
+      ],
+      default: 'PENDING_PAYMENT',
     },
     paymentMethod: {
       type: String,
@@ -67,6 +81,19 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: ['Pending', 'Paid', 'Failed'],
       default: 'Pending',
+    },
+    paymentProvider: {
+      type: String,
+      default: 'Razorpay',
+    },
+    paymentTransactionId: {
+      type: String,
+    },
+    paymentReferenceId: {
+      type: String,
+    },
+    paidAt: {
+      type: Date,
     },
     shippingFee: {
       type: Number,

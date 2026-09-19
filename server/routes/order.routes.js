@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   createOrder,
+  verifyPayment,
   getMyOrders,
   getOrderById,
   getAllOrders,
@@ -14,6 +15,7 @@ const { protect, adminOnly } = require('../middleware/auth.middleware');
 
 // Customer order routes
 router.post('/', protect, createOrder);
+router.post('/verify', protect, verifyPayment);
 router.get('/my-orders', protect, getMyOrders);
 router.get('/:id', protect, getOrderById);
 

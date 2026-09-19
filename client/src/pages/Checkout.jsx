@@ -20,9 +20,18 @@ export default function Checkout() {
     pincode: '',
   });
   const [paymentMethod, setPaymentMethod] = useState('COD');
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
 
   // Dynamic Shipping Calculation
   const calculateShipping = () => {
@@ -52,21 +61,12 @@ export default function Checkout() {
     return Object.keys(errs).length === 0;
   };
 
-  const handlePlaceOrderClick = () => {
+  const handlePlaceOrderClick = async () => {
     if (items.length === 0) return toast.error('Your cart is empty');
     if (!validate()) return toast.error('Please fix the errors in the form');
     
-    if (paymentMethod === 'UPI') {
-      setShowPaymentModal(true);
-    } else if (paymentMethod === 'COD' && shippingFee > 0) {
-      setShowPaymentModal(true);
-    } else {
-      submitOrder();
-    }
-  };
-
-  const submitOrder = async () => {
     setLoading(true);
+    
     try {
       const orderItems = items.map((item) => ({
         productId: item.productId,
@@ -76,6 +76,7 @@ export default function Checkout() {
         customization: item.customization,
       }));
 
+      // 1. Create order on backend (returns Razorpay intent if payment needed)
       const res = await orderService.create({
         items: orderItems,
         customerName: form.customerName,
@@ -86,14 +87,79 @@ export default function Checkout() {
         paymentMethod,
       });
 
-      clearCart();
-      toast.success('Order placed successfully! 🌸');
-      navigate(`/order-success/${res.data.order._id}`, {
-        state: { order: res.data.order, whatsappUrl: res.data.whatsappUrl },
+      const { razorpayOrder, amountToPay, order: dbOrder, whatsappUrl } = res.data;
+
+      // 2. If no payment needed (e.g. COD with free shipping)
+      if (amountToPay === 0) {
+        clearCart();
+        toast.success('Order placed successfully! 🌸');
+        navigate(`/order-success/${dbOrder._id}`, {
+          state: { order: dbOrder, whatsappUrl },
+        });
+        return;
+      }
+
+      // 3. Load Razorpay SDK
+      const resScript = await loadRazorpayScript();
+      if (!resScript) {
+        toast.error('Razorpay SDK failed to load. Are you online?');
+        setLoading(false);
+        return;
+      }
+
+      // 4. Open Razorpay Checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_xxxxxx',
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        name: 'Petals of Happiness',
+        description: `Payment for Order ${dbOrder.orderId}`,
+        order_id: razorpayOrder.id,
+        handler: async function (response) {
+          try {
+            setLoading(true);
+            toast.loading('Verifying payment...', { id: 'payment-verification' });
+            
+            const verifyRes = await orderService.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: dbOrder._id,
+            });
+
+            if (verifyRes.data.success) {
+              toast.success('Payment successful! Order confirmed. 🎉', { id: 'payment-verification' });
+              clearCart();
+              navigate(`/order-success/${dbOrder._id}`, {
+                state: { order: verifyRes.data.order, whatsappUrl },
+              });
+            }
+          } catch (err) {
+            toast.error('Payment verification failed. Please try again or contact support.', { id: 'payment-verification' });
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: form.customerName,
+          email: user?.email || '',
+          contact: form.phone,
+        },
+        theme: {
+          color: '#d66a85',
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      
+      paymentObject.on('payment.failed', function (response) {
+        toast.error('Payment failed. Please try again.');
+        setLoading(false);
       });
+
+      paymentObject.open();
+
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to place order');
-    } finally {
+      toast.error(err.response?.data?.message || 'Failed to initialize payment');
       setLoading(false);
     }
   };
@@ -258,69 +324,12 @@ export default function Checkout() {
               </button>
 
               <p className="text-xs text-dark-100 text-center mt-3">
-                {paymentMethod === 'UPI' ? 'You will be shown a QR code to scan and pay on the next screen.' : 'Pay by cash when the order is delivered to you.'}
+                {paymentMethod === 'UPI' ? 'You will be redirected to pay securely via UPI.' : 'Pay the delivery fee securely via UPI to confirm your order.'}
               </p>
             </div>
           </div>
         </div>
       </div>
-
-      {/* UPI Payment Modal */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-dark-400/40 backdrop-blur-sm overflow-y-auto py-8">
-          <div className="card p-6 max-w-md w-full animate-slide-up my-auto bg-white relative">
-            <button 
-              onClick={() => setShowPaymentModal(false)} 
-              className="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-cream-200"
-            >
-              <X size={18} />
-            </button>
-            
-            <div className="text-center mb-6">
-              <h3 className="font-serif text-2xl text-dark-400 mb-2">Complete Payment</h3>
-              <p className="text-sm text-dark-200">
-                {paymentMethod === 'UPI' ? (
-                  <>Please pay <span className="font-bold text-dark-400">{formatPrice(total)}</span> via UPI.</>
-                ) : (
-                  <>Please pay the delivery charge of <span className="font-bold text-dark-400">{formatPrice(shippingFee)}</span> via UPI to confirm your COD order.</>
-                )}
-                <br />
-                <span className="font-medium text-brand-600">Important:</span> Send a screenshot of the payment to our WhatsApp to confirm your order!
-              </p>
-            </div>
-
-            <div className="flex justify-center mb-6">
-              <div className="w-32 h-32 bg-brand-50 rounded-xl flex items-center justify-center border-2 border-brand-200">
-                <QrCode size={64} className="text-brand-500" />
-              </div>
-            </div>
-
-            <div className="bg-cream-100 px-4 py-3 rounded-lg border border-cream-200 mb-6 flex justify-between items-center">
-              <div>
-                <p className="text-xs text-dark-100 mb-0.5">UPI ID</p>
-                <p className="font-medium text-brand-600">hemantjvd@ptyes</p>
-              </div>
-              <button 
-                onClick={() => {
-                  navigator.clipboard.writeText('hemantjvd@ptyes');
-                  toast.success('UPI ID copied!');
-                }}
-                className="p-2 hover:bg-cream-200 rounded-lg transition-colors"
-              >
-                <Copy size={16} className="text-dark-200" />
-              </button>
-            </div>
-
-            <button
-              onClick={submitOrder}
-              disabled={loading}
-              className="btn-primary w-full justify-center text-base py-3"
-            >
-              {loading ? 'Placing Order...' : 'I Have Paid & Sent Screenshot'}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

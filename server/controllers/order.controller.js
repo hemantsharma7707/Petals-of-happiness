@@ -3,6 +3,8 @@ const Product = require('../models/Product.model');
 const { getWhatsAppURL } = require('../utils/whatsapp');
 const sendEmail = require('../utils/sendEmail');
 const User = require('../models/User.model');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 
 // @route  POST /api/orders
 // @access Private (customer)
@@ -101,32 +103,127 @@ const createOrder = async (req, res, next) => {
     // Generate WhatsApp URL
     const whatsappUrl = getWhatsAppURL(order);
 
-    // Send Confirmation Email
-    const user = await User.findById(req.user._id);
-    if (user && user.email) {
-      const emailHtml = `
-        <h2>Order Confirmation</h2>
-        <p>Dear ${customerName},</p>
-        <p>Thank you for your order!</p>
-        <p><strong>Order ID:</strong> ${order.orderId}</p>
-        <p><strong>Total Amount:</strong> ₹${total}</p>
-        <br>
-        <p>We will notify you once your order is shipped.</p>
-      `;
+    let razorpayOrder = null;
+    let amountToPay = 0;
 
-      await sendEmail({
-        email: user.email,
-        subject: `Order Received - ${order.orderId}`,
-        html: emailHtml,
+    if (paymentMethod === 'UPI') {
+      amountToPay = total;
+    } else if (paymentMethod === 'COD' && shippingFee > 0) {
+      amountToPay = shippingFee;
+    }
+
+    if (amountToPay > 0) {
+      const razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
       });
+
+      const options = {
+        amount: Math.round(amountToPay * 100), // in paise
+        currency: 'INR',
+        receipt: order.orderId,
+      };
+
+      try {
+        razorpayOrder = await razorpay.orders.create(options);
+        order.paymentReferenceId = razorpayOrder.id;
+        await order.save();
+      } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to create payment intent with Razorpay' });
+      }
+    } else {
+      // If COD and shipping is 0, confirm immediately
+      order.orderStatus = 'Confirmed';
+      await order.save();
+
+      // Send Confirmation Email
+      const user = await User.findById(req.user._id);
+      if (user && user.email) {
+        const emailHtml = `
+          <h2>Order Confirmation</h2>
+          <p>Dear ${customerName},</p>
+          <p>Thank you for your order!</p>
+          <p><strong>Order ID:</strong> ${order.orderId}</p>
+          <p><strong>Total Amount:</strong> ₹${total}</p>
+          <br>
+          <p>We will notify you once your order is shipped.</p>
+        `;
+
+        await sendEmail({
+          email: user.email,
+          subject: `Order Received - ${order.orderId}`,
+          html: emailHtml,
+        });
+      }
     }
 
     res.status(201).json({
       success: true,
-      message: 'Order placed successfully',
+      message: amountToPay > 0 ? 'Payment intent created' : 'Order placed successfully',
       order,
       whatsappUrl,
+      razorpayOrder,
+      amountToPay,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @route  POST /api/orders/verify
+// @access Private (customer)
+const verifyPayment = async (req, res, next) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const body = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest('hex');
+
+    const isAuthentic = expectedSignature === razorpay_signature;
+
+    if (isAuthentic) {
+      // Payment is successful
+      order.paymentStatus = 'Paid';
+      order.orderStatus = 'Confirmed';
+      order.paymentTransactionId = razorpay_payment_id;
+      order.paidAt = new Date();
+      await order.save();
+
+      // Send Confirmation Email now that it's paid
+      const user = await User.findById(order.user);
+      if (user && user.email) {
+        const emailHtml = `
+          <h2>Order Confirmation</h2>
+          <p>Dear ${order.customerName},</p>
+          <p>Thank you for your payment and your order!</p>
+          <p><strong>Order ID:</strong> ${order.orderId}</p>
+          <p><strong>Total Amount:</strong> ₹${order.total}</p>
+          <br>
+          <p>We will notify you once your order is shipped.</p>
+        `;
+
+        await sendEmail({
+          email: user.email,
+          subject: `Order Received - ${order.orderId}`,
+          html: emailHtml,
+        });
+      }
+
+      res.json({ success: true, message: 'Payment verified successfully', order });
+    } else {
+      order.paymentStatus = 'Failed';
+      order.orderStatus = 'PAYMENT_VERIFICATION_FAILED';
+      await order.save();
+      res.status(400).json({ success: false, message: 'Invalid payment signature' });
+    }
   } catch (error) {
     next(error);
   }
@@ -391,6 +488,7 @@ const getAllUsers = async (req, res, next) => {
 
 module.exports = {
   createOrder,
+  verifyPayment,
   getMyOrders,
   getOrderById,
   getAllOrders,

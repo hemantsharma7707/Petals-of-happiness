@@ -4,7 +4,7 @@ import { formatPrice, formatDate, getStatusClass, getImageUrl } from '../../util
 import { Search, Eye, X, ChevronDown, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const STATUSES = ['All', 'Pending', 'Confirmed', 'Processing', 'Ready', 'Shipped', 'Delivered', 'Cancelled'];
+const STATUSES = ['All', 'PENDING_PAYMENT', 'PAID', 'PAYMENT_FAILED', 'PAYMENT_VERIFICATION_FAILED', 'Pending', 'Confirmed', 'Processing', 'Ready', 'Shipped', 'Delivered', 'Cancelled'];
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -157,6 +157,12 @@ export default function AdminOrders() {
                 <p className="text-dark-100 text-xs">Payment Status</p>
                 <span className={`badge ${selectedOrder.paymentStatus === 'Paid' ? 'status-delivered' : 'status-pending'} mt-1`}>{selectedOrder.paymentStatus}</span>
               </div>
+              {selectedOrder.paymentTransactionId && (
+                <div>
+                  <p className="text-dark-100 text-xs">Transaction ID</p>
+                  <p className="text-xs font-mono bg-cream-50 p-1 rounded mt-1 border border-cream-200">{selectedOrder.paymentTransactionId}</p>
+                </div>
+              )}
               <div>
                 <p className="text-dark-100 text-xs">Order Status</p>
                 <span className={`badge ${getStatusClass(selectedOrder.orderStatus)} mt-1`}>{selectedOrder.orderStatus}</span>
