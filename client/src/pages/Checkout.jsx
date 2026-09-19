@@ -26,6 +26,7 @@ export default function Checkout() {
 
   // Dynamic Shipping Calculation
   const calculateShipping = () => {
+    if (paymentMethod === 'UPI') return 0;
     if (subtotal > 800) return 0;
     if (form.city.trim().toLowerCase() === 'jaipur') return 50;
     return 100;
@@ -56,6 +57,8 @@ export default function Checkout() {
     if (!validate()) return toast.error('Please fix the errors in the form');
     
     if (paymentMethod === 'UPI') {
+      setShowPaymentModal(true);
+    } else if (paymentMethod === 'COD' && shippingFee > 0) {
       setShowPaymentModal(true);
     } else {
       submitOrder();
@@ -276,7 +279,11 @@ export default function Checkout() {
             <div className="text-center mb-6">
               <h3 className="font-serif text-2xl text-dark-400 mb-2">Complete Payment</h3>
               <p className="text-sm text-dark-200">
-                Please pay <span className="font-bold text-dark-400">{formatPrice(total)}</span> via UPI.
+                {paymentMethod === 'UPI' ? (
+                  <>Please pay <span className="font-bold text-dark-400">{formatPrice(total)}</span> via UPI.</>
+                ) : (
+                  <>Please pay the delivery charge of <span className="font-bold text-dark-400">{formatPrice(shippingFee)}</span> via UPI to confirm your COD order.</>
+                )}
                 <br />
                 <span className="font-medium text-brand-600">Important:</span> Send a screenshot of the payment to our WhatsApp to confirm your order!
               </p>

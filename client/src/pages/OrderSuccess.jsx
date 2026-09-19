@@ -188,9 +188,19 @@ export default function OrderSuccess() {
             ))}
           </div>
 
-          <div className="border-t border-cream-200 pt-3 flex justify-between">
-            <span className="font-semibold text-dark-400">Total</span>
-            <span className="font-serif text-xl font-bold text-brand-500">{formatPrice(order.total)}</span>
+          <div className="border-t border-cream-200 pt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-dark-100">Subtotal</span>
+              <span className="text-dark-400">{formatPrice(order.subtotal || 0)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-dark-100">Shipping</span>
+              <span className="text-dark-400">{order.shippingFee === 0 ? 'Free' : formatPrice(order.shippingFee || 0)}</span>
+            </div>
+            <div className="flex justify-between pt-3 border-t border-cream-200">
+              <span className="font-semibold text-dark-400">Total</span>
+              <span className="font-serif text-xl font-bold text-brand-500">{formatPrice(order.total)}</span>
+            </div>
           </div>
         </div>
 

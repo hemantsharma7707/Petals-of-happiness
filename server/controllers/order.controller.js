@@ -1,6 +1,8 @@
 const Order = require('../models/Order.model');
 const Product = require('../models/Product.model');
 const { getWhatsAppURL } = require('../utils/whatsapp');
+const sendEmail = require('../utils/sendEmail');
+const User = require('../models/User.model');
 
 // @route  POST /api/orders
 // @access Private (customer)
@@ -72,7 +74,9 @@ const createOrder = async (req, res, next) => {
 
     // Calculate Shipping Fee
     let shippingFee = 0;
-    if (subtotal <= 800) {
+    if (paymentMethod === 'UPI') {
+      shippingFee = 0;
+    } else if (subtotal <= 800) {
       shippingFee = city.trim().toLowerCase() === 'jaipur' ? 50 : 100;
     }
 
@@ -96,6 +100,26 @@ const createOrder = async (req, res, next) => {
 
     // Generate WhatsApp URL
     const whatsappUrl = getWhatsAppURL(order);
+
+    // Send Confirmation Email
+    const user = await User.findById(req.user._id);
+    if (user && user.email) {
+      const emailHtml = `
+        <h2>Order Confirmation</h2>
+        <p>Dear ${customerName},</p>
+        <p>Thank you for your order!</p>
+        <p><strong>Order ID:</strong> ${order.orderId}</p>
+        <p><strong>Total Amount:</strong> ₹${total}</p>
+        <br>
+        <p>We will notify you once your order is shipped.</p>
+      `;
+
+      await sendEmail({
+        email: user.email,
+        subject: `Order Received - ${order.orderId}`,
+        html: emailHtml,
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -218,6 +242,42 @@ const updateOrderStatus = async (req, res, next) => {
 
     const orderObj = order.toObject();
     orderObj.whatsappUrl = getWhatsAppURL(order);
+
+    // Send email notification based on status
+    if (status === 'Shipped' || status === 'Delivered') {
+      if (order.user && order.user.email) {
+        let subject = '';
+        let emailHtml = '';
+
+        if (status === 'Shipped') {
+          subject = `Order Shipped - ${order.orderId}`;
+          emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+              <h2 style="color: #4CAF50;">Great News! Your order has been shipped.</h2>
+              <p>Dear ${order.customerName},</p>
+              <p>Your order (<strong>${order.orderId}</strong>) is on its way to you.</p>
+              <p>We hope you enjoy your purchase!</p>
+            </div>
+          `;
+        } else if (status === 'Delivered') {
+          subject = `Order Delivered - ${order.orderId}`;
+          emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+              <h2 style="color: #4CAF50;">Your order has been delivered!</h2>
+              <p>Dear ${order.customerName},</p>
+              <p>Your order (<strong>${order.orderId}</strong>) has been successfully delivered.</p>
+              <p>Thank you for shopping with Petals of Happiness.</p>
+            </div>
+          `;
+        }
+
+        await sendEmail({
+          email: order.user.email,
+          subject,
+          html: emailHtml,
+        });
+      }
+    }
 
     res.json({ success: true, message: 'Order status updated', order: orderObj });
   } catch (error) {
