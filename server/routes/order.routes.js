@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   createOrder,
   verifyPayment,
+  trackOrder,
   getMyOrders,
   getOrderById,
   getAllOrders,
@@ -12,6 +13,9 @@ const {
 } = require('../controllers/order.controller');
 const { getAllProductsAdmin } = require('../controllers/product.controller');
 const { protect, adminOnly } = require('../middleware/auth.middleware');
+
+// Public routes (no login required)
+router.get('/track/:orderId', trackOrder);
 
 // Customer order routes
 router.post('/', protect, createOrder);

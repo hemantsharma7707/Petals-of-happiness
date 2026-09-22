@@ -18,6 +18,7 @@ import OrderSuccess from './pages/OrderSuccess';
 import MyOrders from './pages/MyOrders';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import TrackOrder from './pages/TrackOrder';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -56,6 +57,7 @@ function App() {
               <Route path="/products/:id" element={<ProductDetail />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/track-order" element={<TrackOrder />} />
 
               {/* Guest only */}
               <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />

@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import CartDrawer from '../components/cart/CartDrawer';
+import WhatsAppFloat from '../components/common/WhatsAppFloat';
 
 export default function MainLayout() {
   return (
@@ -12,6 +13,7 @@ export default function MainLayout() {
       </main>
       <Footer />
       <CartDrawer />
+      <WhatsAppFloat />
     </div>
   );
 }

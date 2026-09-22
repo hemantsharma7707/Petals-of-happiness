@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { to: '/products', label: 'Shop' },
   { to: '/products?category=Crochet+Bouquets', label: 'Bouquets' },
   { to: '/products?category=Gifts', label: 'Gifts' },
+  { to: '/track-order', label: 'Track Order' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
 ];

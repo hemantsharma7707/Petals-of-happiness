@@ -485,10 +485,49 @@ const getAllUsers = async (req, res, next) => {
     next(error);
   }
 };
+// @route  GET /api/orders/track/:orderId
+// @access Public (no login required)
+const trackOrder = async (req, res, next) => {
+  try {
+    const order = await Order.findOne({ orderId: req.params.orderId.toUpperCase() });
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found. Please check your Order ID.' });
+    }
+
+    // Only return safe, non-sensitive tracking data
+    res.json({
+      success: true,
+      order: {
+        orderId: order.orderId,
+        orderStatus: order.orderStatus,
+        paymentStatus: order.paymentStatus,
+        paymentMethod: order.paymentMethod,
+        items: order.items.map(item => ({
+          name: item.name,
+          image: item.image,
+          quantity: item.quantity,
+          price: item.price,
+          selectedColor: item.selectedColor,
+        })),
+        subtotal: order.subtotal,
+        shippingFee: order.shippingFee,
+        total: order.total,
+        customerName: order.customerName,
+        city: order.city,
+        createdAt: order.createdAt,
+        paidAt: order.paidAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   createOrder,
   verifyPayment,
+  trackOrder,
   getMyOrders,
   getOrderById,
   getAllOrders,

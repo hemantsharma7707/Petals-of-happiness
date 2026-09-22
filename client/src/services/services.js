@@ -20,6 +20,7 @@ export const productService = {
 export const orderService = {
   create: (data) => api.post('/orders', data),
   verifyPayment: (data) => api.post('/orders/verify', data),
+  trackOrder: (orderId) => api.get(`/orders/track/${orderId}`),
   getMyOrders: () => api.get('/orders/my-orders'),
   getById: (id) => api.get(`/orders/${id}`),
   // Admin
