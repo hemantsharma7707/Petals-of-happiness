@@ -288,6 +288,34 @@ export default function Checkout() {
                     <span className="text-dark-100">Enter city to calculate</span>
                   )}
                 </div>
+
+                {/* Free Shipping Progress */}
+                {paymentMethod === 'COD' && subtotal < 800 && (
+                  <div className="py-1">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-dark-100">
+                        Add <span className="font-semibold text-brand-500">{formatPrice(800 - subtotal)}</span> more for free shipping!
+                      </span>
+                      <span>🚚</span>
+                    </div>
+                    <div className="w-full bg-cream-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-2 rounded-full transition-all duration-500 ease-out"
+                        style={{
+                          width: `${Math.min((subtotal / 800) * 100, 100)}%`,
+                          background: 'linear-gradient(90deg, #C9856F, #D88877)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {paymentMethod === 'COD' && subtotal >= 800 && (
+                  <div className="flex items-center justify-center gap-1.5 bg-sage-100 text-sage-600 rounded-lg py-2 text-xs font-medium">
+                    <span>🎉</span>
+                    <span>Free shipping unlocked!</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between pt-3 border-t border-cream-200">
                   <span className="font-semibold text-dark-400">Total</span>
                   <span className="font-serif text-xl font-bold text-brand-500">{formatPrice(total)}</span>

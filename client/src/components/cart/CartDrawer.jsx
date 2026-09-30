@@ -123,6 +123,42 @@ export default function CartDrawer() {
               <span className="text-dark-200 font-medium">Subtotal</span>
               <span className="font-serif text-xl text-dark-400 font-semibold">{formatPrice(subtotal)}</span>
             </div>
+
+            {/* Free Shipping Progress Bar */}
+            {(() => {
+              const FREE_SHIPPING_THRESHOLD = 800;
+              const remaining = FREE_SHIPPING_THRESHOLD - subtotal;
+              const progress = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
+              return (
+                <div className="py-2">
+                  {remaining > 0 ? (
+                    <>
+                      <div className="flex items-center justify-between text-xs mb-1.5">
+                        <span className="text-dark-100">
+                          Add <span className="font-semibold text-brand-500">{formatPrice(remaining)}</span> more for free shipping!
+                        </span>
+                        <span className="text-dark-100">🚚</span>
+                      </div>
+                      <div className="w-full bg-cream-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="h-2 rounded-full transition-all duration-500 ease-out"
+                          style={{
+                            width: `${progress}%`,
+                            background: 'linear-gradient(90deg, #C9856F, #D88877)',
+                          }}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-center gap-1.5 bg-sage-100 text-sage-600 rounded-lg py-2 text-xs font-medium">
+                      <span>🎉</span>
+                      <span>You've unlocked free shipping!</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             <p className="text-xs text-dark-100 text-center">
               Shipping calculated at checkout • Order via WhatsApp
             </p>

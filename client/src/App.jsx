@@ -12,6 +12,8 @@ import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
@@ -19,6 +21,7 @@ import MyOrders from './pages/MyOrders';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import TrackOrder from './pages/TrackOrder';
+import NotFound from './pages/NotFound';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -62,12 +65,17 @@ function App() {
               {/* Guest only */}
               <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
               <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+              <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+              <Route path="/reset-password/:token" element={<GuestRoute><ResetPassword /></GuestRoute>} />
 
               {/* Protected */}
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
               <Route path="/order-success/:id" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
               <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+
+              {/* 404 - catches all unmatched routes within MainLayout */}
+              <Route path="*" element={<NotFound />} />
             </Route>
 
             {/* Admin Routes */}
@@ -83,11 +91,6 @@ function App() {
               <Route path="customers" element={<AdminCustomers />} />
               <Route path="reviews" element={<AdminReviews />} />
             </Route>
-
-            {/* 404 */}
-            <Route path="*" element={
-              <MainLayout />
-            } />
           </Routes>
         </CartProvider>
       </AuthProvider>

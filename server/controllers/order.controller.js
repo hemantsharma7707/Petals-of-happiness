@@ -220,7 +220,7 @@ const verifyPayment = async (req, res, next) => {
       res.json({ success: true, message: 'Payment verified successfully', order });
     } else {
       order.paymentStatus = 'Failed';
-      order.orderStatus = 'PAYMENT_VERIFICATION_FAILED';
+      order.orderStatus = 'Cancelled';
       await order.save();
       res.status(400).json({ success: false, message: 'Invalid payment signature' });
     }
@@ -409,6 +409,76 @@ const getDashboardStats = async (req, res, next) => {
       ]),
     ]);
 
+    // Chart Data: Monthly revenue for last 6 months
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const monthlyRevenue = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: sixMonthsAgo },
+          orderStatus: { $in: ['Confirmed', 'Processing', 'Ready', 'Shipped', 'Delivered'] },
+        },
+      },
+      {
+        $group: {
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+          revenue: { $sum: '$total' },
+          orders: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+    ]);
+
+    // Fill in missing months with zeros
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const revenueChart = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const match = monthlyRevenue.find(
+        (m) => m._id.year === d.getFullYear() && m._id.month === d.getMonth() + 1
+      );
+      revenueChart.push({
+        month: months[d.getMonth()],
+        year: d.getFullYear(),
+        revenue: match?.revenue || 0,
+        orders: match?.orders || 0,
+      });
+    }
+
+    // Chart Data: Orders by status
+    const ordersByStatus = await Order.aggregate([
+      { $group: { _id: '$orderStatus', count: { $sum: 1 } } },
+    ]);
+    const statusChart = ordersByStatus.map((s) => ({
+      status: s._id,
+      count: s.count,
+    }));
+
+    // Chart Data: Top 5 products by revenue
+    const topProducts = await Order.aggregate([
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.name',
+          revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+          unitsSold: { $sum: '$items.quantity' },
+        },
+      },
+      { $sort: { revenue: -1 } },
+      { $limit: 5 },
+    ]);
+
+    // Low stock products (stock <= 5)
+    const lowStockProducts = await require('../models/Product.model')
+      .find({ active: true, stock: { $lte: 5 } })
+      .select('name stock category images')
+      .sort('stock')
+      .limit(10);
+
     res.json({
       success: true,
       stats: {
@@ -419,6 +489,12 @@ const getDashboardStats = async (req, res, next) => {
         deliveredOrders,
         totalCustomers,
         revenue: revenueData[0]?.total || 0,
+      },
+      charts: {
+        revenueChart,
+        statusChart,
+        topProducts,
+        lowStockProducts,
       },
     });
   } catch (error) {
