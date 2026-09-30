@@ -149,6 +149,14 @@ export default function Checkout() {
         },
       };
 
+      // Handle Razorpay modal dismiss (user closes without paying)
+      options.modal = {
+        ondismiss: function () {
+          setLoading(false);
+          toast('Payment cancelled. Your order is saved — you can retry.', { icon: 'ℹ️' });
+        },
+      };
+
       const paymentObject = new window.Razorpay(options);
       
       paymentObject.on('payment.failed', function (response) {
@@ -157,6 +165,8 @@ export default function Checkout() {
       });
 
       paymentObject.open();
+      // Reset button since Razorpay popup now handles interaction
+      setLoading(false);
 
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to initialize payment');

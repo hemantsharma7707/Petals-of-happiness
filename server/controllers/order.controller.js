@@ -136,7 +136,7 @@ const createOrder = async (req, res, next) => {
       order.orderStatus = 'Confirmed';
       await order.save();
 
-      // Send Confirmation Email
+      // Send Confirmation Email (fire-and-forget, don't block response)
       const user = await User.findById(req.user._id);
       if (user && user.email) {
         const emailHtml = `
@@ -149,11 +149,11 @@ const createOrder = async (req, res, next) => {
           <p>We will notify you once your order is shipped.</p>
         `;
 
-        await sendEmail({
+        sendEmail({
           email: user.email,
           subject: `Order Received - ${order.orderId}`,
           html: emailHtml,
-        });
+        }).catch(err => console.error('Email send error:', err));
       }
     }
 
